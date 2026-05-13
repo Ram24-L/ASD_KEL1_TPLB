@@ -12,47 +12,68 @@ class PriorityQueue:
     def __init__(self):
         self.head = None
         self.tail = None
-        self._size = 0
-        self.logs = [] # List sederhana untuk menyimpan riwayat (Stack-like)
+        self.last_id_num = 0  # Counter untuk ID unik
+        self.logs = [] # Simpan riwayat (Stack-like)
 
     def is_empty(self):
         return self.head is None
 
     def size(self):
-        return self._size
+        count = 0
+        curr = self.head
+        while curr:
+            count += 1
+            curr = curr.next
+        return count
 
-    def enqueue(self, nama, kategori):
-        # Generate ID sederhana (P001, P002, dst)
-        self._size += 1
-        new_id = f"P{self._size:03d}"
+    def set_last_id(self, id_str):
+        """Memastikan ID baru tidak bentrok dengan ID lama di CSV."""
+        try:
+            num = int(id_str.replace("P", ""))
+            if num > self.last_id_num:
+                self.last_id_num = num
+        except:
+            pass
+
+    def enqueue(self, nama, kategori, manual_id=None):
+        """
+        Jika manual_id ada (saat load data), gunakan itu.
+        Jika tidak (pasien baru), buat ID baru secara otomatis.
+        """
+        if manual_id:
+            new_id = manual_id
+            self.set_last_id(manual_id)
+        else:
+            self.last_id_num += 1
+            new_id = f"P{self.last_id_num:03d}"
+
         new_node = Node(new_id, nama, kategori)
 
-        # LOGIKA PRIORITY:
+        # LOGIKA PRIORITY
         if self.is_empty():
             self.head = self.tail = new_node
         elif kategori == "Darurat":
-            # Jika darurat, sisipkan di paling depan (Head)
+            # Darurat langsung ke depan (Head)
             new_node.next = self.head
             self.head = new_node
         else:
-            # Jika normal, masukkan ke paling belakang (Tail)
+            # Normal ke belakang (Tail)
             self.tail.next = new_node
             self.tail = new_node
         
-        print(f"\n[SISTEM] {nama} berhasil ditambahkan ke antrian {kategori}.")
+        return new_id
 
     def dequeue(self):
         if self.is_empty():
             return None
         
-        # Ambil data dari Head (FIFO)
         temp = self.head
         self.head = self.head.next
         
         if self.head is None:
             self.tail = None
             
-        # Pemanis: Masukkan ke Log (Stack-like: data baru di index 0)
+        # Pemanis: Masukkan ke Log (Stack-like)
         self.logs.insert(0, temp) 
         return temp
 
@@ -83,11 +104,7 @@ class PriorityQueue:
             print(f"[{p.id_pasien}] {p.nama} - SELESAI")
         print("-" * 45)
 
-    def get_log_count(self):
-        return len(self.logs)
-
     def search_pasien(self, keyword):
-        # Linear Search sederhana
         curr = self.head
         found = False
         while curr:
@@ -96,4 +113,8 @@ class PriorityQueue:
                 found = True
             curr = curr.next
         if not found:
-            print(f"\nPasien dengan kata kunci '{keyword}' tidak ditemukan.")
+            print(f"\nPasien '{keyword}' tidak ditemukan.")
+            
+    def get_log_count(self):
+        """Mengembalikan jumlah pasien yang sudah dilayani (isi dari list logs)."""
+        return len(self.logs)

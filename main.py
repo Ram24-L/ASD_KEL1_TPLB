@@ -21,7 +21,7 @@ def main():
         clear_screen()
         header_klinik() # Menampilkan banner "Klinik Dokter"
         
-        # Statistik Ringkas
+        # Pemanis: Statistik Ringkas
         print(f" STATS: [Menunggu: {antrian.size()}] | [Selesai: {antrian.get_log_count()}]")
         print("-" * 50)
         
