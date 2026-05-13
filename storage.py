@@ -29,3 +29,30 @@ def load_data(queue_obj):
                             queue_obj.logs.append(node_log)
                 except Exception as e:
                     print(f"[ERROR] gagal membaca file log: {e}") 
+
+def save_data(queue_obj):
+    #1. simpan antrian
+    try:
+        with open(FILE_ANTRIAN, mode='w', newline='') as file:
+            fieldnames = ['id', 'nama', 'kategori']
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+
+            curr = queue_obj.head
+            while curr:
+                writer.writerow({'id': curr.id, 'nama': curr.nama, 'kategori': curr.kategori})
+                curr = curr.next
+    except Exception as e:
+        print(f"[ERROR] gagal menyimpan file antrian: {e}")
+    
+    try:
+        with open(FILE_LOG, mode='w', newline='') as file:
+            fieldnames = ['id', 'nama', 'kategori']
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for p in queue_obj.logs:
+                writer.writerow({'id': p.id_pasien, 'nama': p.nama, 'kategori': p.kategori})
+
+    except Exception as e:
+        print(f"[ERROR] gagal menyimpan log : {e}")
