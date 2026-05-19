@@ -156,7 +156,6 @@ class PriorityQueue:
             print(f"└───────────────────────────┘{Color.RESET}")
             return
 
-<<<<<<< HEAD
         print(f"\n{Color.CYAN}╔═══════════════════════════════════════════════════════════╗")
         print(f"║ {Color.BOLD}DAFTAR ANTRIAN AKTIF{Color.RESET}{Color.CYAN}".ljust(73) + "║")
         print(f"╠═══════════════════════════════════════════════════════════╣")
@@ -169,9 +168,6 @@ class PriorityQueue:
             print(f"{Color.CYAN}║ {curr.id_pasien:<6} | {curr.nama:<15} | {kategori_color}{curr.kategori:<8}{Color.RESET}{Color.CYAN} | {curr.waktu:<19} ║{Color.RESET}")
             curr = curr.next
         print(f"{Color.CYAN}╚═══════════════════════════════════════════════════════════╝{Color.RESET}")
-=======
-        nodes = self._to_list()
->>>>>>> Debug-phase
 
         if mode == 'alpha':
             # Insertion Sort berdasarkan nama (A-Z) — O(n²) tapi cocok untuk linked list kecil
@@ -254,7 +250,6 @@ class PriorityQueue:
             print(f"└───────────────────────────┘{Color.RESET}")
             return
 
-<<<<<<< HEAD
         print(f"\n{Color.BLUE}╔═══════════════════════════════════════════════════════╗")
         print(f"║ {Color.BOLD}RIWAYAT PELAYANAN (LOG STACK){Color.RESET}{Color.BLUE}".ljust(69) + "║")
         print(f"╠═══════════════════════════════════════════════════════╣{Color.RESET}")
@@ -277,19 +272,6 @@ class PriorityQueue:
         if not found:
             print(f"{Color.RED}❌ Pasien '{keyword}' tidak ditemukan.{Color.RESET}")
             
-=======
-        print("\n" + "=" * 55)
-        print("      RIWAYAT PELAYANAN (LOG STACK)      ".center(55))
-        print("=" * 55)
-        print(f"  {'No':<4} {'ID':<7} {'NAMA':<18} {'STATUS':<10} {'WAKTU'}")
-        print("-" * 55)
-        for i, p in enumerate(reversed(self.logs), start=1):
-            status_mark = "🔴" if p.kategori == "Darurat" else "🟢"
-            print(f"  {i:<4} {p.id_pasien:<7} {p.nama:<18} {status_mark} {p.kategori:<8} {p.waktu}")
-        print("-" * 55)
-        print(f"  Total pasien dilayani: {len(self.logs)}\n")
-
->>>>>>> Debug-phase
     def get_log_count(self):
         """Mengembalikan jumlah pasien yang sudah dilayani."""
         return len(self.logs)

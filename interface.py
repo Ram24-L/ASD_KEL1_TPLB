@@ -24,7 +24,6 @@ def header_klinik():
 
 def display_menu():
     """Menampilkan daftar pilihan menu dengan format yang rapi."""
-<<<<<<< HEAD
     menu_items = [
         "Registrasi Pasien Baru",
         "Panggil Pasien Berikutnya",
@@ -53,14 +52,6 @@ def loading_spinner(duration=1, message="Memproses"):
         time.sleep(0.1)
         i += 1
     print("\r" + " " * (len(message) + 10) + "\r", end="")
-=======
-    print(" [1] Registrasi Pasien Baru")
-    print(" [2] Panggil Pasien Berikutnya")
-    print(" [3] Lihat & Cari Antrian")
-    print(" [4] Riwayat Pelayanan (Log)")
-    print(" [0] Keluar & Simpan Data")
-    print("-" * 60)
->>>>>>> Debug-phase
 
 def animasi_panggil(pasien):
     
