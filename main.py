@@ -106,7 +106,7 @@ def main():
         header_klinik()
         
         # Dashboard Statistik Terstandarisasi Warna
-        print(f" STATS: [Menunggu: {Color.RED}{antrian.size()}{Color.RESET}] | [Total Riwayat Hari Ini: {Color.GREEN}{antrian.get_log_count()}{Color.RESET}]")
+        print(f" STATS: [Menunggu: {Color.RED}{antrian.size()}{Color.RESET}] | [Pasien dilayani]: {Color.GREEN}{antrian.get_log_count()}{Color.RESET}]")
         print(f"{Color.CYAN}{'-' * 60}{Color.RESET}")
         
         display_menu()
