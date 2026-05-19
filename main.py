@@ -74,4 +74,4 @@ def main():
             input("Tekan Enter...")
 
 if __name__ == "__main__":
-    main()
+    main() # Test 1
