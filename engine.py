@@ -4,6 +4,7 @@
 from interface import Color # Import Color untuk estetika
 from datetime import datetime, timedelta, timezone
 from interface import Color
+from storage import save_data
 
 class Node:
     def __init__(self, id_pasien, nama, kategori, waktu):
@@ -83,6 +84,8 @@ class PriorityQueue:
             self.tail.next = new_node
             self.tail = new_node
 
+
+        save_data(self)
         return new_id
 
     def dequeue(self):
@@ -101,6 +104,7 @@ class PriorityQueue:
 
         # Masukkan ke Log (Gunakan append agar O(1))
         self.logs.append(temp)
+        save_data(self)
         return temp
 
     # ─────────────────────────────────────────────
@@ -119,17 +123,23 @@ class PriorityQueue:
     # DISPLAY (tampilan asli / urutan antrian)
     # ─────────────────────────────────────────────
     def _print_table(self, nodes, judul="ANTRIAN AKTIF"):
-        """Mencetak tabel dari list node."""
-        print("\n" + "=" * 60)
-        print(f"  {judul}".center(60))
-        print("=" * 60)
-        print(f"  {'No':<4} {'ID':<7} {'NAMA PASIEN':<18} {'STATUS':<10} {'WAKTU DAFTAR'}")
-        print("-" * 60)
+        """Mencetak tabel dari list node dengan pewarnaan terstandardisasi."""
+        print("\n" + f"{Color.CYAN}=" * 65)
+        print(f"{Color.RESET}{Color.BOLD}{judul}{Color.RESET}".center(65))
+        print(f"{Color.CYAN}=" * 65)
+        print(f"| {'No':<4} | {'ID':<6} | {'NAMA PASIEN':<20} | {'STATUS':<10} | {'WAKTU DAFTAR'}")
+        print(f"-" * 65 + f"{Color.RESET}")
+        
         for i, node in enumerate(nodes, start=1):
-            status_mark = "🔴" if node.kategori == "Darurat" else "🟢"
-            print(f"  {i:<4} {node.id_pasien:<7} {node.nama:<18} {status_mark} {node.kategori:<8} {node.waktu}")
-        print("=" * 60)
-        print(f"  Total: {len(nodes)} pasien\n")
+            if node.kategori == "Darurat":
+                kat_warna = f"{Color.RED}{node.kategori:<10}{Color.RESET}"
+            else:
+                kat_warna = f"{Color.GREEN}{node.kategori:<10}{Color.RESET}"
+                
+            print(f"| {i:<4} | {node.id_pasien:<6} | {node.nama:<20} | {kat_warna} | {node.waktu}")
+            
+        print(f"{Color.CYAN}=" * 65 + f"{Color.RESET}")
+        print(f"  Total: {Color.BOLD}{len(nodes)}{Color.RESET} pasien\n")
 
     def display_all(self):
         if self.is_empty():
@@ -155,17 +165,16 @@ class PriorityQueue:
             
         print(f"{Color.CYAN}="*52 + f"{Color.RESET}")
 
-    # ─────────────────────────────────────────────
-    # SORT — hanya untuk tampilan, tidak ubah antrian
-    # ─────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────
+    # SORT — Hanya untuk tampilan, TIDAK mengubah antrian asli
+    # ─────────────────────────────────────────────────────────
     def display_sorted(self, mode):
         """
         Menampilkan antrian dalam urutan tertentu (TIDAK mengubah antrian asli).
-
         mode:
-          'alpha'    → Urut A-Z berdasarkan nama pasien
-          'urgency'  → Darurat semua dulu, lalu Normal (urutan kedatangan dipertahankan)
-          'combined' → Darurat dulu (A-Z), lalu Normal (A-Z)
+          'nama' / 'alpha'       → Urut A-Z berdasarkan nama pasien
+          'kategori' / 'urgency' → Darurat semua dulu, lalu Normal (urutan kedatangan dipertahankan)
+          'gabungan' / 'combined'→ Darurat dulu (A-Z), lalu Normal (A-Z)
         """
         if self.is_empty():
             print(f"\n{Color.YELLOW}┌───────────────────────────┐")
@@ -173,32 +182,22 @@ class PriorityQueue:
             print(f"└───────────────────────────┘{Color.RESET}")
             return
 
-        print(f"\n{Color.CYAN}╔═══════════════════════════════════════════════════════════╗")
-        print(f"║ {Color.BOLD}DAFTAR ANTRIAN AKTIF{Color.RESET}{Color.CYAN}".ljust(73) + "║")
-        print(f"╠═══════════════════════════════════════════════════════════╣")
-        print(f"║ {Color.BOLD}{'ID':<6} | {'NAMA PASIEN':<15} | {'KAT':<8} | {'WAKTU DAFTAR':<19}{Color.RESET}{Color.CYAN} ║")
-        print(f"╠═══════════════════════════════════════════════════════════╣{Color.RESET}")
-        
-        curr = self.head
-        while curr:
-            kategori_color = Color.RED if curr.kategori == "Darurat" else Color.GREEN
-            print(f"{Color.CYAN}║ {curr.id_pasien:<6} | {curr.nama:<15} | {kategori_color}{curr.kategori:<8}{Color.RESET}{Color.CYAN} | {curr.waktu:<19} ║{Color.RESET}")
-            curr = curr.next
-        print(f"{Color.CYAN}╚═══════════════════════════════════════════════════════════╝{Color.RESET}")
+        # Ambil semua node dari linked list ke dalam list penolong (Array lokal)
+        nodes = self._to_list()
 
-        if mode == 'alpha':
-            # Insertion Sort berdasarkan nama (A-Z) — O(n²) tapi cocok untuk linked list kecil
+        if mode in ['nama', 'alpha']:
+            # Insertion Sort berdasarkan nama (A-Z)
             sorted_nodes = self._insertion_sort_alpha(nodes)
             judul = "ANTRIAN — URUT ALFABETIS (A-Z)"
 
-        elif mode == 'urgency':
-            # Pisahkan Darurat & Normal, pertahankan urutan kedatangan masing-masing
+        elif mode in ['kategori', 'urgency']:
+            # Pisahkan Darurat & Normal, pertahankan urutan kedatangan masing-masing (FIFO Priority)
             darurat = [n for n in nodes if n.kategori == "Darurat"]
             normal  = [n for n in nodes if n.kategori == "Normal"]
             sorted_nodes = darurat + normal
             judul = "ANTRIAN — URUT URGENSI (Darurat → Normal)"
 
-        elif mode == 'combined':
+        elif mode in ['gabungan', 'combined']:
             # Darurat A-Z dulu, lalu Normal A-Z
             darurat = self._insertion_sort_alpha([n for n in nodes if n.kategori == "Darurat"])
             normal  = self._insertion_sort_alpha([n for n in nodes if n.kategori == "Normal"])
@@ -206,14 +205,15 @@ class PriorityQueue:
             judul = "ANTRIAN — URGENSI + ALFABETIS (Darurat A-Z → Normal A-Z)"
 
         else:
-            print("[ERROR] Mode sort tidak dikenali.")
+            print(f"{Color.RED}[ERROR] Mode sort tidak dikenali.{Color.RESET}")
             return
 
+        # Panggil fungsi pembantu untuk menampilkan array yang sudah terurut
         self._print_table(sorted_nodes, judul=judul)
 
     def _insertion_sort_alpha(self, nodes):
         """Insertion Sort A-Z berdasarkan nama (case-insensitive)."""
-        arr = nodes[:]  # salin, jangan ubah asli
+        arr = nodes[:]  # Salin alamat objek agar tidak merusak urutan asli
         for i in range(1, len(arr)):
             key = arr[i]
             j = i - 1
@@ -292,3 +292,28 @@ class PriorityQueue:
     def get_log_count(self):
         """Mengembalikan jumlah pasien yang sudah dilayani."""
         return len(self.logs)
+    
+    def display_by_kategori(self, target_kategori):
+        """
+        Menampilkan daftar antrian yang difilter berdasarkan kategori tertentu.
+        target_kategori: "Darurat" atau "Normal"
+        """
+        if self.is_empty():
+            print(f"\n{Color.YELLOW}┌───────────────────────────┐")
+            print(f"│ {Color.BOLD}ANTRIAN KOSONG SAAT INI{Color.RESET}{Color.YELLOW} │")
+            print(f"└───────────────────────────┘{Color.RESET}")
+            return
+
+        # Ambil semua node linked list ke dalam list penolong
+        nodes = self._to_list()
+        # Filter hanya yang kategorinya cocok
+        filtered_nodes = [n for n in nodes if n.kategori == target_kategori]
+
+        if not filtered_nodes:
+            print(f"\n{Color.RED}❌ Tidak ada pasien dengan kategori '{target_kategori}' di dalam antrian.{Color.RESET}")
+            return
+
+        judul = f"ANTRIAN AKTIF — KHUSUS KATEGORI {target_kategori.upper()}"
+        
+        # Manfaatkan fungsi cetak tabel yang sudah kita perbaiki sebelumnya
+        self._print_table(filtered_nodes, judul=judul)

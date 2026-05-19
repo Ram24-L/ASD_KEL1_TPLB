@@ -8,6 +8,7 @@ from engine import PriorityQueue
 from storage import load_data, save_data 
 from interface import header_klinik, display_menu, animasi_panggil, Color
 
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -18,8 +19,8 @@ def menu_filter_search(antrian):
     while True:
         clear_screen()
         print(f"{Color.CYAN}{'=' * 60}")
-        print(f"{Color.RESET}{Color.BOLD}PENCARIAN & PENGURUTAN ANTRIAN{Color.RESET}".center(60))
-        print(f"{Color.RESET}{Color.CYAN}Fitur Analisis dan Filtrasi Data Pasien{Color.RESET}".center(60))
+        print(f"{Color.RESET}{Color.BOLD}PENCARIAN, PENGURUTAN & FILTER ANTRIAN{Color.RESET}".center(60))
+        print(f"{Color.RESET}Fitur Analisis dan Filtrasi Data Pasien{Color.RESET}".center(60))
         print(f"{Color.CYAN}{'=' * 60}{Color.RESET}")
         
         print(f"  {Color.CYAN}── Opsi Pengurutan (Sorting) ──{Color.RESET}")
@@ -30,11 +31,15 @@ def menu_filter_search(antrian):
         print(f"  {Color.CYAN}── Opsi Pencarian (Searching) ──{Color.RESET}")
         print(f"  [{Color.GREEN}4{Color.RESET}] Cari Pasien        (Nama / ID / Tanggal)")
         print()
+        print(f"  {Color.CYAN}── Opsi Penyaringan (Filtering) ──{Color.RESET}")
+        print(f"  [{Color.GREEN}5{Color.RESET}] Tampilkan Khusus Pasien Darurat")
+        print(f"  [{Color.GREEN}6{Color.RESET}] Tampilkan Khusus Pasien Normal")
+        print()
         print(f"  [{Color.RED}0{Color.RESET}] Kembali ke Menu Utama")
         print(f"{Color.CYAN}{'-' * 60}{Color.RESET}")
         
-        pilihan = input(f"  Pilih menu [0-4]: {Color.BOLD}").strip()
-        print(Color.RESET, end="") # Reset warna setelah user mengetik
+        pilihan = input(f"  Pilih menu [0-6]: {Color.BOLD}").strip()
+        print(Color.RESET, end="")
         
         if pilihan == '0':
             break
@@ -63,9 +68,19 @@ def menu_filter_search(antrian):
             else:
                 print(f"\n{Color.RED}❌ Keyword pencarian tidak boleh kosong!{Color.RESET}")
             input(f"\n{Color.CYAN}Tekan Enter untuk kembali...{Color.RESET}")
+            
+        # ─── FITUR BARU: FILTER KATEGORI ───
+        elif pilihan == '5':
+            clear_screen()
+            antrian.display_by_kategori("Darurat")
+            input(f"\n{Color.CYAN}Tekan Enter untuk kembali...{Color.RESET}")
+        elif pilihan == '6':
+            clear_screen()
+            antrian.display_by_kategori("Normal")
+            input(f"\n{Color.CYAN}Tekan Enter untuk kembali...{Color.RESET}")
+        # ────────────────────────────────────
         else:
-            # Bug Handling: Input selain 0-4 terkunci di sini sebelum layar dibersihkan
-            print(f"\n{Color.RED}❌ Pilihan tidak valid! Masukkan angka antara 0 sampai 4.{Color.RESET}")
+            print(f"\n{Color.RED}❌ Pilihan tidak valid! Masukkan angka antara 0 sampai 6.{Color.RESET}")
             input(f"{Color.YELLOW}  Tekan [Enter] untuk mencoba lagi...{Color.RESET}")
 
 # ─────────────────────────────────────────────────────────
@@ -76,6 +91,15 @@ def main():
     
     # Load data lama dari CSV jika ada
     load_data(antrian)
+
+    #Load fungsi login
+    from interface import login_admin
+    while True:
+        clear_screen()
+        # Jika fungsi login mengembalikan True, keluar dari loop login dan masuk ke aplikasi
+        if login_admin():
+            break
+
     
     while True:
         clear_screen()
@@ -90,46 +114,61 @@ def main():
         print(Color.RESET, end="") # Reset warna input utama
         
         if pilihan == '1':
-            clear_screen()
-            print(f"\n{Color.CYAN}=== REGISTRASI PASIEN BARU ==={Color.RESET}\n")
-            nama = input(f"  Nama Pasien : {Color.BOLD}").strip()
-            print(Color.RESET, end="")
-            if not nama:
-                print(f"\n{Color.RED}❌ Nama tidak boleh kosong!{Color.RESET}")
-                input(f"\n{Color.CYAN}  Tekan Enter untuk kembali...{Color.RESET}")
-                continue
-            
-            # ─── 🛡️ BUG HANDLING: VERIFIKASI LOCK Y/N ───
-            print(f"\n  {Color.YELLOW}[VERIFIKASI ADMIN]{Color.RESET}")
-            print(f"  Apakah nama {Color.BOLD}'{nama}'{Color.RESET} sudah benar dan sesuai?")
-            
+            # ─── LOOPING MULTI-INPUT REGISTRASI PASIEN ───
             while True:
-                verif = input(f"  Konfirmasi [Y/N]: {Color.BOLD}").strip().lower()
+                clear_screen()
+                print(f"\n{Color.CYAN}=== REGISTRASI PASIEN BARU ==={Color.RESET}\n")
+                nama = input(f"  Nama Pasien : {Color.BOLD}").strip()
                 print(Color.RESET, end="")
-                if verif in ['y', 'n']:
-                    break
-                print(f"  {Color.RED}❌ Masukan salah. Ketik Y jika benar, atau N untuk membatalkan.{Color.RESET}")
-            
-            if verif == 'n':
-                print(f"\n{Color.RED}❌ Pendaftaran dibatalkan. Data tidak dimasukkan ke antrian.{Color.RESET}")
-                input(f"{Color.CYAN}  Tekan Enter untuk kembali...{Color.RESET}")
-                continue # Menggagalkan alur dan kembali ke menu utama
-            # ─────────────────────────────────────────────
+                if not nama:
+                    print(f"\n{Color.RED}❌ Nama tidak boleh kosong!{Color.RESET}")
+                    input(f"\n{Color.CYAN}  Tekan Enter untuk mencoba lagi...{Color.RESET}")
+                    continue
                 
-            print(f"\n  {Color.YELLOW}Kategori Kondisi Pasien:{Color.RESET}")
-            print(f"  [{Color.GREEN}1{Color.RESET}] Normal")
-            print(f"  [{Color.GREEN}2{Color.RESET}] Darurat (Prioritas)")
-            
-            while True:
-                kat_input = input(f"  Pilih [1/2] : {Color.BOLD}").strip()
-                print(Color.RESET, end="")
-                if kat_input in ['1', '2']:
-                    break
-                print(f"  {Color.RED}❌ Pilihan salah. Ketik 1 untuk Normal or 2 untuk Darurat.{Color.RESET}")
+                # 🛡️ BUG HANDLING: VERIFIKASI LOCK Y/N
+                print(f"\n  {Color.YELLOW}[VERIFIKASI ADMIN]{Color.RESET}")
+                print(f"  Apakah nama {Color.BOLD}'{nama}'{Color.RESET} sudah benar dan sesuai KTP/BPJS?")
                 
-            kategori = "Darurat" if kat_input == '2' else "Normal"
-            new_id = antrian.enqueue(nama, kategori)
-            input(f"\n{Color.GREEN}✅ Pasien {Color.BOLD}{new_id}{Color.RESET}{Color.GREEN} berhasil terdaftar! Tekan Enter...{Color.RESET}")
+                while True:
+                    verif = input(f"  Konfirmasi [Y/N]: {Color.BOLD}").strip().lower()
+                    print(Color.RESET, end="")
+                    if verif in ['y', 'n']:
+                        break
+                    print(f"  {Color.RED}❌ Masukan salah. Ketik Y jika benar, atau N untuk membatalkan.{Color.RESET}")
+                
+                if verif == 'n':
+                    print(f"\n{Color.RED}❌ Pendaftaran dibatalkan. Data tidak dimasukkan ke antrian.{Color.RESET}")
+                    input(f"{Color.CYAN}  Tekan Enter untuk mengulang...{Color.RESET}")
+                    continue # Mengulang loop registrasi dari awal (input nama lagi)
+                    
+                print(f"\n  {Color.YELLOW}Kategori Kondisi Pasien:{Color.RESET}")
+                print(f"  [{Color.GREEN}1{Color.RESET}] Normal")
+                print(f"  [{Color.GREEN}2{Color.RESET}] Darurat (Prioritas)")
+                
+                while True:
+                    kat_input = input(f"  Pilih [1/2] : {Color.BOLD}").strip()
+                    print(Color.RESET, end="")
+                    if kat_input in ['1', '2']:
+                        break
+                    print(f"  {Color.RED}❌ Pilihan salah. Ketik 1 untuk Normal atau 2 untuk Darurat.{Color.RESET}")
+                    
+                kategori = "Darurat" if kat_input == '2' else "Normal"
+                new_id = antrian.enqueue(nama, kategori)
+                print(f"\n{Color.GREEN}✅ Pasien {Color.BOLD}{new_id}{Color.RESET}{Color.GREEN} berhasil terdaftar!{Color.RESET}")
+                
+                # ─── 🔁 PERTANYAAN INPUT ULANG (MULTI-INPUT LOCK) ───
+                print(f"\n{Color.CYAN}{'-' * 45}{Color.RESET}")
+                print("  Apakah ingin mendaftarkan pasien lain?")
+                while True:
+                    ulang = input(f"  Input lagi? [Y/N]: {Color.BOLD}").strip().lower()
+                    print(Color.RESET, end="")
+                    if ulang in ['y', 'n']:
+                        break
+                    print(f"  {Color.RED}❌ Masukan salah. Ketik Y untuk input lagi, atau N untuk kembali ke menu utama.{Color.RESET}")
+                
+                if ulang == 'n':
+                    break # Keluar dari loop registrasi dan kembali ke Menu Utama
+            # ───────────────────────────────────────────────────
 
         elif pilihan == '2':
             clear_screen()
@@ -151,7 +190,7 @@ def main():
 
         elif pilihan == '0':
             save_data(antrian)
-            print(f"\n{Color.GREEN}💾 Data berhasil disimpan secara permanen ke database CSV. Sampai jumpa!{Color.RESET}\n")
+            print(f"\n{Color.GREEN}Sampai jumpa kembali!{Color.RESET}\n")
             break
 
         else:

@@ -3,6 +3,8 @@
 
 import time
 import os
+import msvcrt
+import sys
 
 # Definisi Warna ANSI
 class Color:
@@ -98,3 +100,59 @@ def tabel_kosong():
     print(f"\n{Color.RED}┌────────────────────────────────────────┐")
     print("│  DATA TIDAK DITEMUKAN / ANTRIAN KOSONG │")
     print(f"└────────────────────────────────────────┘{Color.RESET}")
+
+def login_admin():
+    """Fungsi login admin dengan sensor bintang (*) khusus Windows."""
+    # Pengaturan akun admin default klinik
+    USERNAME_BENAR = "admin"
+    PASSWORD_BENAR = "admin123" 
+    
+    print(f"{Color.CYAN}{'=' * 60}")
+    print(f"{Color.RESET}{Color.BOLD}OTENTIKASI LOGIN SISTEM KLINIK{Color.RESET}".center(60))
+    print(f"{Color.CYAN}{'=' * 60}{Color.RESET}\n")
+    
+    username = input(f"  Username Admin : {Color.BOLD}").strip()
+    print(Color.RESET, end="")
+    
+    print("  Password Admin : ", end="", flush=True)
+    
+    password = ""
+    while True:
+        # Membaca karakter yang diketik secara langsung tanpa memunculkannya di layar
+        ch = msvcrt.getch()
+        
+        # Jika user menekan Enter (\r atau \n)
+        if ch in [b'\r', b'\n']:
+            print() # Pindah baris baru setelah menekan enter
+            break
+            
+        # Jika user menekan Backspace (\x08) untuk menghapus
+        elif ch == b'\x08':
+            if len(password) > 0:
+                password = password[:-1]
+                # Mundurkan kursor terminal, hapus karakter dengan spasi, lalu mundurkan lagi
+                sys.stdout.write('\b \b')
+                sys.stdout.flush()
+                
+        # Jika karakter normal diketik
+        else:
+            try:
+                char_decode = ch.decode('utf-8')
+                password += char_decode
+                # Tampilkan karakter bintang sebagai sensor di layar terminal
+                sys.stdout.write('*')
+                sys.stdout.flush()
+            except:
+                pass # Mengabaikan karakter aneh / tombol fungsi (seperti F1-F12 atau arrow)
+
+    # Validasi Kecocokan Kredensial Akun
+    if username == USERNAME_BENAR and password == PASSWORD_BENAR:
+        print(f"\n{Color.GREEN}✅ Verifikasi Berhasil! Selamat datang, Admin.{Color.RESET}")
+        import time
+        time.sleep(1.2)
+        return True
+    else:
+        print(f"\n{Color.RED}❌ Username atau Password salah! Akses ditolak.{Color.RESET}")
+        input(f"{Color.YELLOW}  Tekan Enter untuk mencoba lagi...{Color.RESET}")
+        return False
+    
