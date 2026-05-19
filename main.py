@@ -4,8 +4,8 @@
 
 import os
 from engine import PriorityQueue
-from storage import load_data, save_data
-from interface import header_klinik, display_menu, animasi_panggil
+from storage import load_data, save_data 
+from interface import header_klinik, display_menu, animasi_panggil, Color
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -22,8 +22,10 @@ def main():
         header_klinik() # Menampilkan banner "Klinik Dokter"
         
         # Pemanis: Statistik Ringkas
-        print(f" STATS: [Menunggu: {antrian.size()}] | [Selesai: {antrian.get_log_count()}]")
-        print("-" * 50)
+        wait_count = antrian.size()
+        log_count = antrian.get_log_count()
+        print(f"  \033[94mANTREAN AKTIF: {wait_count}\033[0m | \033[92mTOTAL DILAYANI: {log_count}\033[0m") # Sudah ada warna
+        print("\033[96m" + "─" * 60 + "\033[0m")
         
         display_menu()
         pilihan = input("\nPilih menu [0-5]: ")
@@ -36,14 +38,14 @@ def main():
             kategori = "Darurat" if kat_input == '2' else "Normal"
             
             # Memasukkan ke Queue 
-            antrian.enqueue(nama, kategori)
-            input("\nPasien berhasil terdaftar! Tekan Enter...")
+            new_id = antrian.enqueue(nama, kategori)
+            input(f"\n{Color.GREEN}✅ Pasien {Color.BOLD}{new_id}{Color.RESET}{Color.GREEN} berhasil terdaftar! Tekan Enter...{Color.RESET}")
 
         elif pilihan == '2':
             # Panggil Pasien (Dequeue)
             pasien_dipanggil = antrian.dequeue()
             if pasien_dipanggil:
-                animasi_panggil(pasien_dipanggil) # Pemanis visual (Tugas Anggota 2)
+                animasi_panggil(pasien_dipanggil)
             else:
                 print("\nAntrian kosong!")
                 input("Tekan Enter...")
@@ -67,11 +69,11 @@ def main():
         elif pilihan == '0':
             # Simpan data sebelum keluar (Tugas Anggota 1)
             save_data(antrian)
-            print("\nData berhasil disimpan. Sampai jumpa!")
+            print(f"\n{Color.GREEN}💾 Data berhasil disimpan. Sampai jumpa!{Color.RESET}")
             break
         else:
-            print("\nPilihan tidak valid!")
-            input("Tekan Enter...")
+            print(f"\n{Color.RED}❌ Pilihan tidak valid!{Color.RESET}")
+            input(f"{Color.YELLOW}Tekan Enter untuk melanjutkan...{Color.RESET}")
 
 if __name__ == "__main__":
     main()
