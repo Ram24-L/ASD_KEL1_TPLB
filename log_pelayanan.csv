@@ -1,3 +1,4 @@
-id,nama,kategori
-P003,Ibam,Darurat
-P005,Abim,Darurat
+id,nama,kategori,waktu
+P003,Ibam,Darurat,-
+P005,Abim,Darurat,-
+P001,Daffa,Normal,-
