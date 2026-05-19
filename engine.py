@@ -1,11 +1,14 @@
 # engine.py
 # Modul Logika Struktur Data - Kelompok 1
 
+from datetime import datetime, timedelta, timezone
+
 class Node:
-    def __init__(self, id_pasien, nama, kategori):
+    def __init__(self, id_pasien, nama, kategori, waktu):
         self.id_pasien = id_pasien
         self.nama = nama
         self.kategori = kategori  # "Normal" atau "Darurat"
+        self.waktu = waktu  # Format: "YYYY-MM-DD HH:MM:SS"
         self.next = None
 
 class PriorityQueue:
@@ -33,9 +36,9 @@ class PriorityQueue:
         except:
             pass
 
-    def enqueue(self, nama, kategori, manual_id=None):
+    def enqueue(self, nama, kategori, manual_id=None, manual_waktu=None):
         """
-        Jika manual_id ada (saat load data), gunakan itu.
+        Jika manual_id/waktu ada (saat load data), gunakan itu.
         Jika tidak (pasien baru), buat ID baru secara otomatis.
         """
         if manual_id:
@@ -45,7 +48,14 @@ class PriorityQueue:
             self.last_id_num += 1
             new_id = f"P{self.last_id_num:03d}"
 
-        new_node = Node(new_id, nama, kategori)
+        # Set waktu ke GMT+7 jika tidak ada manual_waktu
+        if manual_waktu:
+            waktu_final = manual_waktu
+        else:
+            tz_gmt7 = timezone(timedelta(hours=7))
+            waktu_final = datetime.now(tz_gmt7).strftime("%Y-%m-%d %H:%M:%S")
+
+        new_node = Node(new_id, nama, kategori, waktu_final)
         self._size += 1
 
         # LOGIKA PRIORITY
@@ -97,14 +107,14 @@ class PriorityQueue:
             return
 
         print("\n" + "="*45)
-        print(f"{'ID':<6} | {'NAMA PASIEN':<20} | {'KATEGORI'}")
-        print("-" * 45)
+        print(f"{'ID':<6} | {'NAMA PASIEN':<15} | {'KAT':<8} | {'WAKTU DAFTAR'}")
+        print("-" * 55)
         
         curr = self.head
         while curr:
-            print(f"{curr.id_pasien:<6} | {curr.nama:<20} | {curr.kategori}")
+            print(f"{curr.id_pasien:<6} | {curr.nama:<15} | {curr.kategori:<8} | {curr.waktu}")
             curr = curr.next
-        print("="*45)
+        print("="*55)
 
     def show_logs(self):
         if not self.logs:
@@ -115,15 +125,18 @@ class PriorityQueue:
         print("      RIWAYAT PELAYANAN (LOG STACK)      ")
         print("="*45)
         for p in reversed(self.logs):  # Tampilkan dari yang terbaru
-            print(f"[{p.id_pasien}] {p.nama} - SELESAI")
+            print(f"[{p.waktu}] {p.id_pasien} - {p.nama} (SELESAI)")
         print("-" * 45)
 
     def search_pasien(self, keyword):
         curr = self.head
         found = False
         while curr:
-            if keyword.lower() in curr.nama.lower() or keyword.upper() == curr.id_pasien:
-                print(f"\n[KETEMU] {curr.id_pasien} - {curr.nama} ({curr.kategori})")
+            # Sekarang bisa mencari berdasarkan Nama, ID, atau bagian dari Waktu (misal: "2023-10")
+            if (keyword.lower() in curr.nama.lower() or 
+                keyword.upper() == curr.id_pasien or 
+                keyword in curr.waktu):
+                print(f"\n[KETEMU] {curr.id_pasien} - {curr.nama} [{curr.kategori}] (Daftar: {curr.waktu})")
                 found = True
             curr = curr.next
         if not found:

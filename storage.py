@@ -17,8 +17,13 @@ def load_data(queue_obj):
                 reader = csv.DictReader(file)
                 for row in reader:
                     # Kita masukkan kembali ke queue
-                    # Sertakan manual_id agar ID tetap konsisten dari file
-                    queue_obj.enqueue(row['nama'], row['kategori'], manual_id=row['id'])
+                    # Sertakan manual_id & manual_waktu agar data konsisten
+                    queue_obj.enqueue(
+                        row['nama'], 
+                        row['kategori'], 
+                        manual_id=row['id'], 
+                        manual_waktu=row.get('waktu', '-')
+                    )
             print(f"[STORAGE] Berhasil memuat antrian dari {FILE_ANTRIAN}")
         except Exception as e:
             print(f"[ERROR] Gagal membaca file antrian: {e}")
@@ -32,7 +37,12 @@ def load_data(queue_obj):
                 for row in reader:
                     # Membuat objek dummy/Node untuk log
                     from engine import Node
-                    node_log = Node(row['id'], row['nama'], row['kategori'])
+                    node_log = Node(
+                        row['id'], 
+                        row['nama'], 
+                        row['kategori'], 
+                        row.get('waktu', '-')
+                    )
                     queue_obj.logs.append(node_log)
         except Exception as e:
             print(f"[ERROR] Gagal membaca log: {e}")
@@ -42,7 +52,7 @@ def save_data(queue_obj):
     # 1. Simpan Antrian yang masih menunggu
     try:
         with open(FILE_ANTRIAN, mode='w', newline='') as file:
-            fieldnames = ['id', 'nama', 'kategori']
+            fieldnames = ['id', 'nama', 'kategori', 'waktu']
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             
@@ -51,7 +61,8 @@ def save_data(queue_obj):
                 writer.writerow({
                     'id': curr.id_pasien,
                     'nama': curr.nama,
-                    'kategori': curr.kategori
+                    'kategori': curr.kategori,
+                    'waktu': curr.waktu
                 })
                 curr = curr.next
     except Exception as e:
@@ -60,7 +71,7 @@ def save_data(queue_obj):
     # 2. Simpan Log Pelayanan (History)
     try:
         with open(FILE_LOG, mode='w', newline='') as file:
-            fieldnames = ['id', 'nama', 'kategori']
+            fieldnames = ['id', 'nama', 'kategori', 'waktu']
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             writer.writeheader()
             
@@ -68,7 +79,8 @@ def save_data(queue_obj):
                 writer.writerow({
                     'id': p.id_pasien,
                     'nama': p.nama,
-                    'kategori': p.kategori
+                    'kategori': p.kategori,
+                    'waktu': p.waktu
                 })
     except Exception as e:
         print(f"[ERROR] Gagal menyimpan log: {e}")
