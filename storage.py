@@ -17,8 +17,8 @@ def load_data(queue_obj):
                 reader = csv.DictReader(file)
                 for row in reader:
                     # Kita masukkan kembali ke queue
-                    # Gunakan enqueue tanpa print agar tidak memenuhi layar saat start
-                    queue_obj.enqueue(row['nama'], row['kategori'])
+                    # Sertakan manual_id agar ID tetap konsisten dari file
+                    queue_obj.enqueue(row['nama'], row['kategori'], manual_id=row['id'])
             print(f"[STORAGE] Berhasil memuat antrian dari {FILE_ANTRIAN}")
         except Exception as e:
             print(f"[ERROR] Gagal membaca file antrian: {e}")

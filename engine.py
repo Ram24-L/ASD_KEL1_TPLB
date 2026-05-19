@@ -12,19 +12,17 @@ class PriorityQueue:
     def __init__(self):
         self.head = None
         self.tail = None
+        self.last_emergency = None  # Pointer ke pasien darurat terakhir (untuk FIFO sesama darurat)
         self.last_id_num = 0  # Counter untuk ID unik
+        self._size = 0  # Counter efisien untuk jumlah antrian
         self.logs = [] # Simpan riwayat (Stack-like)
 
     def is_empty(self):
         return self.head is None
 
     def size(self):
-        count = 0
-        curr = self.head
-        while curr:
-            count += 1
-            curr = curr.next
-        return count
+        """Mengembalikan jumlah antrian secara instan O(1)."""
+        return self._size
 
     def set_last_id(self, id_str):
         """Memastikan ID baru tidak bentrok dengan ID lama di CSV."""
@@ -48,14 +46,26 @@ class PriorityQueue:
             new_id = f"P{self.last_id_num:03d}"
 
         new_node = Node(new_id, nama, kategori)
+        self._size += 1
 
         # LOGIKA PRIORITY
         if self.is_empty():
             self.head = self.tail = new_node
+            if kategori == "Darurat":
+                self.last_emergency = new_node
         elif kategori == "Darurat":
-            # Darurat langsung ke depan (Head)
-            new_node.next = self.head
-            self.head = new_node
+            # Darurat dimasukkan setelah pasien darurat terakhir, sebelum pasien normal (FIFO Priority)
+            if self.last_emergency:
+                new_node.next = self.last_emergency.next
+                self.last_emergency.next = new_node
+                if self.last_emergency == self.tail:
+                    self.tail = new_node
+                self.last_emergency = new_node
+            else:
+                # Pasien darurat pertama di tengah antrian normal
+                new_node.next = self.head
+                self.head = new_node
+                self.last_emergency = new_node
         else:
             # Normal ke belakang (Tail)
             self.tail.next = new_node
@@ -69,12 +79,16 @@ class PriorityQueue:
         
         temp = self.head
         self.head = self.head.next
+        self._size -= 1
         
         if self.head is None:
             self.tail = None
+            self.last_emergency = None
+        elif temp == self.last_emergency:
+            self.last_emergency = None
             
-        # Pemanis: Masukkan ke Log (Stack-like)
-        self.logs.insert(0, temp) 
+        # Masukkan ke Log (Gunakan append agar O(1))
+        self.logs.append(temp) 
         return temp
 
     def display_all(self):
@@ -100,7 +114,7 @@ class PriorityQueue:
         print("\n" + "="*45)
         print("      RIWAYAT PELAYANAN (LOG STACK)      ")
         print("="*45)
-        for p in self.logs:
+        for p in reversed(self.logs):  # Tampilkan dari yang terbaru
             print(f"[{p.id_pasien}] {p.nama} - SELESAI")
         print("-" * 45)
 
