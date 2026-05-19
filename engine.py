@@ -3,6 +3,7 @@
 
 from interface import Color # Import Color untuk estetika
 from datetime import datetime, timedelta, timezone
+from interface import Color
 
 class Node:
     def __init__(self, id_pasien, nama, kategori, waktu):
@@ -131,12 +132,28 @@ class PriorityQueue:
         print(f"  Total: {len(nodes)} pasien\n")
 
     def display_all(self):
-        """Tampilkan antrian sesuai urutan asli (prioritas aktif)."""
         if self.is_empty():
-            print("\n--- Antrian Kosong ---")
+            print(f"\n{Color.RED}--- Antrian Kosong ---{Color.RESET}")
             return
-        nodes = self._to_list()
-        self._print_table(nodes, judul="ANTRIAN AKTIF (Urutan Pelayanan)")
+
+        # Header Tabel menggunakan warna Cyan agar konsisten dengan menu utama
+        print("\n" + f"{Color.CYAN}="*52 + f"{Color.RESET}")
+        print(f"| {'ID':<6} | {'NAMA PASIEN':<20} | {'KATEGORI':<12} |")
+        print(f"{Color.CYAN}-"*52 + f"{Color.RESET}")
+        
+        curr = self.head
+        while curr:
+            # Berikan warna pembeda pada kolom kategori secara dinamis
+            if curr.kategori == "Darurat":
+                kat_warna = f"{Color.RED}{curr.kategori:<12}{Color.RESET}"
+            else:
+                kat_warna = f"{Color.GREEN}{curr.kategori:<12}{Color.RESET}"
+                
+            # Cetak baris data pasien
+            print(f"{Color.CYAN}|{Color.RESET} {curr.id_pasien:<6} {Color.CYAN}|{Color.RESET} {curr.nama:<20} {Color.CYAN}|{Color.RESET} {kat_warna} {Color.CYAN}|{Color.RESET}")
+            curr = curr.next
+            
+        print(f"{Color.CYAN}="*52 + f"{Color.RESET}")
 
     # ─────────────────────────────────────────────
     # SORT — hanya untuk tampilan, tidak ubah antrian

@@ -16,29 +16,31 @@ class Color:
     BLUE = '\033[94m'
 
 def header_klinik():
-    """Menampilkan banner utama aplikasi."""
+    """Menampilkan banner utama aplikasi dengan tulisan putih dan pembatas cyan."""
     print(f"{Color.CYAN}{'=' * 60}")
-    print(f"{Color.BOLD}SISTEM ANTRIAN KLINIK".center(60))
-    print(f"{Color.RESET}{Color.CYAN}Pelayanan Kesehatan Cepat & Responsif".center(60))
-    print(f"{'=' * 60}{Color.RESET}")
+    print(f"{Color.RESET}SISTEM ANTRIAN KLINIK{Color.RESET}".center(60))
+    print(f"{Color.RESET}Pelayanan Kesehatan Cepat & Responsif{Color.RESET}".center(60))
+    print(f"{Color.CYAN}{'=' * 60}{Color.RESET}")
 
 def display_menu():
     """Menampilkan daftar pilihan menu dengan format yang rapi."""
     menu_items = [
         "Registrasi Pasien Baru",
         "Panggil Pasien Berikutnya",
-        "Lihat Antrian Aktif",
-        "Cari Data Pasien",
-        "Riwayat Pelayanan (Log)",
+        "Lihat Antrian Aktif (Fix Order)",
+        "Pencarian & Pengurutan Pasien",
         "Keluar & Simpan Data"
     ]
 
     '''Memberikan warna untuk nomor pada menu.'''
-    print(f"\n{Color.BOLD}MAIN MENU:{Color.RESET}")
     for i, item in enumerate(menu_items):
-        num = i + 1 if i < 5 else 0
-        color = Color.YELLOW if num != 0 else Color.RED
-        print(f"  {color}[{num}]{Color.RESET} {item}")
+        # Jika item terakhir (Keluar & Simpan Data), set nomornya menjadi 0
+        if i == len(menu_items) - 1:
+            num_str = f"[{Color.RED}0{Color.RESET}]"
+        else:
+            num_str = f"[{Color.GREEN}{i+1}{Color.RESET}]"
+            
+        print(f"  {num_str} {item}")
     print(f"{Color.CYAN}{'-' * 60}{Color.RESET}")
 
 def loading_spinner(duration=1, message="Memproses"):
