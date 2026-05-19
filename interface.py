@@ -15,9 +15,8 @@ def display_menu():
     """Menampilkan daftar pilihan menu dengan format yang rapi."""
     print(" [1] Registrasi Pasien Baru")
     print(" [2] Panggil Pasien Berikutnya")
-    print(" [3] Lihat Antrian Aktif")
-    print(" [4] Cari Data Pasien")
-    print(" [5] Riwayat Pelayanan (Log)")
+    print(" [3] Lihat & Cari Antrian")
+    print(" [4] Riwayat Pelayanan (Log)")
     print(" [0] Keluar & Simpan Data")
     print("-" * 60)
 

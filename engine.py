@@ -18,7 +18,7 @@ class PriorityQueue:
         self.last_emergency = None  # Pointer ke pasien darurat terakhir (untuk FIFO sesama darurat)
         self.last_id_num = 0  # Counter untuk ID unik
         self._size = 0  # Counter efisien untuk jumlah antrian
-        self.logs = [] # Simpan riwayat (Stack-like)
+        self.logs = []  # Simpan riwayat (Stack-like)
 
     def is_empty(self):
         return self.head is None
@@ -80,68 +80,171 @@ class PriorityQueue:
             # Normal ke belakang (Tail)
             self.tail.next = new_node
             self.tail = new_node
-        
+
         return new_id
 
     def dequeue(self):
         if self.is_empty():
             return None
-        
+
         temp = self.head
         self.head = self.head.next
         self._size -= 1
-        
+
         if self.head is None:
             self.tail = None
             self.last_emergency = None
         elif temp == self.last_emergency:
             self.last_emergency = None
-            
+
         # Masukkan ke Log (Gunakan append agar O(1))
-        self.logs.append(temp) 
+        self.logs.append(temp)
         return temp
 
+    # ─────────────────────────────────────────────
+    # HELPER: ambil semua node dari linked list
+    # ─────────────────────────────────────────────
+    def _to_list(self):
+        """Mengonversi linked list ke Python list (hanya untuk keperluan tampilan/sort)."""
+        result = []
+        curr = self.head
+        while curr:
+            result.append(curr)
+            curr = curr.next
+        return result
+
+    # ─────────────────────────────────────────────
+    # DISPLAY (tampilan asli / urutan antrian)
+    # ─────────────────────────────────────────────
+    def _print_table(self, nodes, judul="ANTRIAN AKTIF"):
+        """Mencetak tabel dari list node."""
+        print("\n" + "=" * 60)
+        print(f"  {judul}".center(60))
+        print("=" * 60)
+        print(f"  {'No':<4} {'ID':<7} {'NAMA PASIEN':<18} {'STATUS':<10} {'WAKTU DAFTAR'}")
+        print("-" * 60)
+        for i, node in enumerate(nodes, start=1):
+            status_mark = "🔴" if node.kategori == "Darurat" else "🟢"
+            print(f"  {i:<4} {node.id_pasien:<7} {node.nama:<18} {status_mark} {node.kategori:<8} {node.waktu}")
+        print("=" * 60)
+        print(f"  Total: {len(nodes)} pasien\n")
+
     def display_all(self):
+        """Tampilkan antrian sesuai urutan asli (prioritas aktif)."""
+        if self.is_empty():
+            print("\n--- Antrian Kosong ---")
+            return
+        nodes = self._to_list()
+        self._print_table(nodes, judul="ANTRIAN AKTIF (Urutan Pelayanan)")
+
+    # ─────────────────────────────────────────────
+    # SORT — hanya untuk tampilan, tidak ubah antrian
+    # ─────────────────────────────────────────────
+    def display_sorted(self, mode):
+        """
+        Menampilkan antrian dalam urutan tertentu (TIDAK mengubah antrian asli).
+
+        mode:
+          'alpha'    → Urut A-Z berdasarkan nama pasien
+          'urgency'  → Darurat semua dulu, lalu Normal (urutan kedatangan dipertahankan)
+          'combined' → Darurat dulu (A-Z), lalu Normal (A-Z)
+        """
         if self.is_empty():
             print("\n--- Antrian Kosong ---")
             return
 
-        print("\n" + "="*45)
-        print(f"{'ID':<6} | {'NAMA PASIEN':<15} | {'KAT':<8} | {'WAKTU DAFTAR'}")
-        print("-" * 55)
-        
-        curr = self.head
-        while curr:
-            print(f"{curr.id_pasien:<6} | {curr.nama:<15} | {curr.kategori:<8} | {curr.waktu}")
-            curr = curr.next
-        print("="*55)
+        nodes = self._to_list()
 
+        if mode == 'alpha':
+            # Insertion Sort berdasarkan nama (A-Z) — O(n²) tapi cocok untuk linked list kecil
+            sorted_nodes = self._insertion_sort_alpha(nodes)
+            judul = "ANTRIAN — URUT ALFABETIS (A-Z)"
+
+        elif mode == 'urgency':
+            # Pisahkan Darurat & Normal, pertahankan urutan kedatangan masing-masing
+            darurat = [n for n in nodes if n.kategori == "Darurat"]
+            normal  = [n for n in nodes if n.kategori == "Normal"]
+            sorted_nodes = darurat + normal
+            judul = "ANTRIAN — URUT URGENSI (Darurat → Normal)"
+
+        elif mode == 'combined':
+            # Darurat A-Z dulu, lalu Normal A-Z
+            darurat = self._insertion_sort_alpha([n for n in nodes if n.kategori == "Darurat"])
+            normal  = self._insertion_sort_alpha([n for n in nodes if n.kategori == "Normal"])
+            sorted_nodes = darurat + normal
+            judul = "ANTRIAN — URGENSI + ALFABETIS (Darurat A-Z → Normal A-Z)"
+
+        else:
+            print("[ERROR] Mode sort tidak dikenali.")
+            return
+
+        self._print_table(sorted_nodes, judul=judul)
+
+    def _insertion_sort_alpha(self, nodes):
+        """Insertion Sort A-Z berdasarkan nama (case-insensitive)."""
+        arr = nodes[:]  # salin, jangan ubah asli
+        for i in range(1, len(arr)):
+            key = arr[i]
+            j = i - 1
+            while j >= 0 and arr[j].nama.lower() > key.nama.lower():
+                arr[j + 1] = arr[j]
+                j -= 1
+            arr[j + 1] = key
+        return arr
+
+    # ─────────────────────────────────────────────
+    # SEARCH — partial match, semua hasil ditampilkan
+    # ─────────────────────────────────────────────
+    def search_pasien(self, keyword):
+        """
+        Mencari pasien berdasarkan nama (partial), ID (exact), atau waktu (partial).
+        Contoh: keyword "michael" → menemukan "Michael Flow" DAN "Michael Bart".
+        """
+        keyword_lower = keyword.lower().strip()
+        curr = self.head
+        hasil = []
+
+        while curr:
+            cocok_nama = keyword_lower in curr.nama.lower()
+            cocok_id   = keyword.upper() == curr.id_pasien
+            cocok_waktu = keyword in curr.waktu
+            if cocok_nama or cocok_id or cocok_waktu:
+                hasil.append(curr)
+            curr = curr.next
+
+        print("\n" + "=" * 60)
+        if hasil:
+            print(f"  Hasil pencarian untuk: \"{keyword}\" ({len(hasil)} ditemukan)")
+            print("=" * 60)
+            print(f"  {'No':<4} {'ID':<7} {'NAMA PASIEN':<18} {'STATUS':<10} {'WAKTU DAFTAR'}")
+            print("-" * 60)
+            for i, node in enumerate(hasil, start=1):
+                status_mark = "🔴" if node.kategori == "Darurat" else "🟢"
+                print(f"  {i:<4} {node.id_pasien:<7} {node.nama:<18} {status_mark} {node.kategori:<8} {node.waktu}")
+            print("=" * 60)
+        else:
+            print(f"  Tidak ada pasien yang cocok dengan \"{keyword}\".")
+            print("=" * 60)
+
+    # ─────────────────────────────────────────────
+    # LOG & RIWAYAT
+    # ─────────────────────────────────────────────
     def show_logs(self):
         if not self.logs:
             print("\nBelum ada pasien yang dilayani.")
             return
 
-        print("\n" + "="*45)
-        print("      RIWAYAT PELAYANAN (LOG STACK)      ")
-        print("="*45)
-        for p in reversed(self.logs):  # Tampilkan dari yang terbaru
-            print(f"[{p.waktu}] {p.id_pasien} - {p.nama} (SELESAI)")
-        print("-" * 45)
+        print("\n" + "=" * 55)
+        print("      RIWAYAT PELAYANAN (LOG STACK)      ".center(55))
+        print("=" * 55)
+        print(f"  {'No':<4} {'ID':<7} {'NAMA':<18} {'STATUS':<10} {'WAKTU'}")
+        print("-" * 55)
+        for i, p in enumerate(reversed(self.logs), start=1):
+            status_mark = "🔴" if p.kategori == "Darurat" else "🟢"
+            print(f"  {i:<4} {p.id_pasien:<7} {p.nama:<18} {status_mark} {p.kategori:<8} {p.waktu}")
+        print("-" * 55)
+        print(f"  Total pasien dilayani: {len(self.logs)}\n")
 
-    def search_pasien(self, keyword):
-        curr = self.head
-        found = False
-        while curr:
-            # Sekarang bisa mencari berdasarkan Nama, ID, atau bagian dari Waktu (misal: "2023-10")
-            if (keyword.lower() in curr.nama.lower() or 
-                keyword.upper() == curr.id_pasien or 
-                keyword in curr.waktu):
-                print(f"\n[KETEMU] {curr.id_pasien} - {curr.nama} [{curr.kategori}] (Daftar: {curr.waktu})")
-                found = True
-            curr = curr.next
-        if not found:
-            print(f"\nPasien '{keyword}' tidak ditemukan.")
-            
     def get_log_count(self):
-        """Mengembalikan jumlah pasien yang sudah dilayani (isi dari list logs)."""
+        """Mengembalikan jumlah pasien yang sudah dilayani."""
         return len(self.logs)
