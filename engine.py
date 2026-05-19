@@ -1,6 +1,7 @@
 # engine.py
 # Modul Logika Struktur Data - Kelompok 1
 
+from interface import Color # Import Color untuk estetika
 from datetime import datetime, timedelta, timezone
 
 class Node:
@@ -103,44 +104,52 @@ class PriorityQueue:
 
     def display_all(self):
         if self.is_empty():
-            print("\n--- Antrian Kosong ---")
+            print(f"\n{Color.YELLOW}┌───────────────────────────┐")
+            print(f"│ {Color.BOLD}ANTRIAN KOSONG SAAT INI{Color.RESET}{Color.YELLOW} │")
+            print(f"└───────────────────────────┘{Color.RESET}")
             return
 
-        print("\n" + "="*45)
-        print(f"{'ID':<6} | {'NAMA PASIEN':<15} | {'KAT':<8} | {'WAKTU DAFTAR'}")
-        print("-" * 55)
+        print(f"\n{Color.CYAN}╔═══════════════════════════════════════════════════════════╗")
+        print(f"║ {Color.BOLD}DAFTAR ANTRIAN AKTIF{Color.RESET}{Color.CYAN}".ljust(73) + "║")
+        print(f"╠═══════════════════════════════════════════════════════════╣")
+        print(f"║ {Color.BOLD}{'ID':<6} | {'NAMA PASIEN':<15} | {'KAT':<8} | {'WAKTU DAFTAR':<19}{Color.RESET}{Color.CYAN} ║")
+        print(f"╠═══════════════════════════════════════════════════════════╣{Color.RESET}")
         
         curr = self.head
         while curr:
-            print(f"{curr.id_pasien:<6} | {curr.nama:<15} | {curr.kategori:<8} | {curr.waktu}")
+            kategori_color = Color.RED if curr.kategori == "Darurat" else Color.GREEN
+            print(f"{Color.CYAN}║ {curr.id_pasien:<6} | {curr.nama:<15} | {kategori_color}{curr.kategori:<8}{Color.RESET}{Color.CYAN} | {curr.waktu:<19} ║{Color.RESET}")
             curr = curr.next
-        print("="*55)
+        print(f"{Color.CYAN}╚═══════════════════════════════════════════════════════════╝{Color.RESET}")
 
     def show_logs(self):
         if not self.logs:
-            print("\nBelum ada pasien yang dilayani.")
+            print(f"\n{Color.YELLOW}┌───────────────────────────┐")
+            print(f"│ {Color.BOLD}BELUM ADA PASIEN DILAYANI{Color.RESET}{Color.YELLOW} │")
+            print(f"└───────────────────────────┘{Color.RESET}")
             return
 
-        print("\n" + "="*45)
-        print("      RIWAYAT PELAYANAN (LOG STACK)      ")
-        print("="*45)
+        print(f"\n{Color.BLUE}╔═══════════════════════════════════════════════════════╗")
+        print(f"║ {Color.BOLD}RIWAYAT PELAYANAN (LOG STACK){Color.RESET}{Color.BLUE}".ljust(69) + "║")
+        print(f"╠═══════════════════════════════════════════════════════╣{Color.RESET}")
         for p in reversed(self.logs):  # Tampilkan dari yang terbaru
-            print(f"[{p.waktu}] {p.id_pasien} - {p.nama} (SELESAI)")
-        print("-" * 45)
+            print(f"{Color.BLUE}║ [{p.waktu}] {p.id_pasien} - {p.nama} {Color.GREEN}(SELESAI){Color.RESET}{Color.BLUE}".ljust(75) + f"║{Color.RESET}")
+        print(f"{Color.BLUE}╚═══════════════════════════════════════════════════════╝{Color.RESET}")
 
     def search_pasien(self, keyword):
         curr = self.head
         found = False
+        print(f"\n{Color.YELLOW}Mencari pasien dengan keyword '{keyword}'...{Color.RESET}")
         while curr:
             # Sekarang bisa mencari berdasarkan Nama, ID, atau bagian dari Waktu (misal: "2023-10")
             if (keyword.lower() in curr.nama.lower() or 
                 keyword.upper() == curr.id_pasien or 
                 keyword in curr.waktu):
-                print(f"\n[KETEMU] {curr.id_pasien} - {curr.nama} [{curr.kategori}] (Daftar: {curr.waktu})")
+                print(f"{Color.GREEN}✅ DITEMUKAN: {Color.BOLD}{curr.id_pasien}{Color.RESET} - {curr.nama} [{curr.kategori}] (Daftar: {curr.waktu}){Color.RESET}")
                 found = True
             curr = curr.next
         if not found:
-            print(f"\nPasien '{keyword}' tidak ditemukan.")
+            print(f"{Color.RED}❌ Pasien '{keyword}' tidak ditemukan.{Color.RESET}")
             
     def get_log_count(self):
         """Mengembalikan jumlah pasien yang sudah dilayani (isi dari list logs)."""
