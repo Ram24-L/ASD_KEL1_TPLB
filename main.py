@@ -80,7 +80,6 @@ def main():
 
     while True:
         clear_screen()
-<<<<<<< HEAD
         header_klinik() # Menampilkan banner "Klinik Dokter"
         
         # Pemanis: Statistik Ringkas
@@ -89,14 +88,6 @@ def main():
         print(f"  \033[94mANTREAN AKTIF: {wait_count}\033[0m | \033[92mTOTAL DILAYANI: {log_count}\033[0m") # Sudah ada warna
         print("\033[96m" + "─" * 60 + "\033[0m")
         
-=======
-        header_klinik()
-
-        # Statistik ringkas
-        print(f"  STATS: [Menunggu: {antrian.size()}] | [Selesai: {antrian.get_log_count()}]")
-        print("-" * 60)
-
->>>>>>> Debug-phase
         display_menu()
         pilihan = input("\nPilih menu [0-4]: ").strip()
 
@@ -114,17 +105,10 @@ def main():
             print("  Kategori    : 1. Normal  |  2. Darurat (Prioritas)")
             kat_input = input("  Pilih [1/2] : ").strip()
             kategori = "Darurat" if kat_input == '2' else "Normal"
-<<<<<<< HEAD
             
             # Memasukkan ke Queue 
             new_id = antrian.enqueue(nama, kategori)
             input(f"\n{Color.GREEN}✅ Pasien {Color.BOLD}{new_id}{Color.RESET}{Color.GREEN} berhasil terdaftar! Tekan Enter...{Color.RESET}")
-=======
-
-            new_id = antrian.enqueue(nama, kategori)
-            print(f"\n  ✅ Pasien '{nama}' terdaftar sebagai [{kategori}] dengan ID {new_id}")
-            input("\n  Tekan Enter...")
->>>>>>> Debug-phase
 
         elif pilihan == '2':
             # Panggil Pasien (Dequeue)
@@ -148,21 +132,12 @@ def main():
         elif pilihan == '0':
             # Simpan data sebelum keluar
             save_data(antrian)
-<<<<<<< HEAD
             print(f"\n{Color.GREEN}💾 Data berhasil disimpan. Sampai jumpa!{Color.RESET}")
-=======
-            print("\n  Data berhasil disimpan. Sampai jumpa! 👋")
->>>>>>> Debug-phase
             break
 
         else:
-<<<<<<< HEAD
             print(f"\n{Color.RED}❌ Pilihan tidak valid!{Color.RESET}")
             input(f"{Color.YELLOW}Tekan Enter untuk melanjutkan...{Color.RESET}")
-=======
-            print("\n  Pilihan tidak valid!")
-            input("  Tekan Enter...")
->>>>>>> Debug-phase
 
 if __name__ == "__main__":
     main()
