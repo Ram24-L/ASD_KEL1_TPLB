@@ -43,21 +43,25 @@ def menu_filter_search(antrian):
         
         if pilihan == '0':
             break
+
         elif pilihan == '1':
             clear_screen()
             print(f"\n{Color.YELLOW}=== ANTRIAN ALFABETIS (A-Z) ==={Color.RESET}")
             antrian.display_sorted("nama")
             input(f"\n{Color.CYAN}Tekan Enter untuk kembali...{Color.RESET}")
+
         elif pilihan == '2':
             clear_screen()
             print(f"\n{Color.YELLOW}=== ANTRIAN BERDASARKAN URGENSI ==={Color.RESET}")
             antrian.display_sorted("kategori")
             input(f"\n{Color.CYAN}Tekan Enter untuk kembali...{Color.RESET}")
+
         elif pilihan == '3':
             clear_screen()
             print(f"\n{Color.YELLOW}=== ANTRIAN GABUNGAN (PRIORITAS & A-Z) ==={Color.RESET}")
             antrian.display_sorted("gabungan")
             input(f"\n{Color.CYAN}Tekan Enter untuk kembali...{Color.RESET}")
+
         elif pilihan == '4':
             clear_screen()
             print(f"\n{Color.CYAN}=== PENCARIAN DATA PASIEN ==={Color.RESET}\n")
@@ -74,11 +78,13 @@ def menu_filter_search(antrian):
             clear_screen()
             antrian.display_by_kategori("Darurat")
             input(f"\n{Color.CYAN}Tekan Enter untuk kembali...{Color.RESET}")
+
         elif pilihan == '6':
             clear_screen()
             antrian.display_by_kategori("Normal")
             input(f"\n{Color.CYAN}Tekan Enter untuk kembali...{Color.RESET}")
         # ────────────────────────────────────
+        
         else:
             print(f"\n{Color.RED}❌ Pilihan tidak valid! Masukkan angka antara 0 sampai 6.{Color.RESET}")
             input(f"{Color.YELLOW}  Tekan [Enter] untuk mencoba lagi...{Color.RESET}")

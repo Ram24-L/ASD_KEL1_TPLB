@@ -124,11 +124,11 @@ class PriorityQueue:
     # ─────────────────────────────────────────────
     def _print_table(self, nodes, judul="ANTRIAN AKTIF"):
         """Mencetak tabel dari list node dengan pewarnaan terstandardisasi."""
-        print("\n" + f"{Color.CYAN}=" * 65)
+        print("\n" + f"{Color.CYAN}=" * 73)
         print(f"{Color.RESET}{Color.BOLD}{judul}{Color.RESET}".center(65))
-        print(f"{Color.CYAN}=" * 65)
+        print(f"{Color.CYAN}=" * 73)
         print(f"| {'No':<4} | {'ID':<6} | {'NAMA PASIEN':<20} | {'STATUS':<10} | {'WAKTU DAFTAR'}")
-        print(f"-" * 65 + f"{Color.RESET}")
+        print(f"-" * 73 + f"{Color.RESET}")
         
         for i, node in enumerate(nodes, start=1):
             if node.kategori == "Darurat":
@@ -138,7 +138,7 @@ class PriorityQueue:
                 
             print(f"| {i:<4} | {node.id_pasien:<6} | {node.nama:<20} | {kat_warna} | {node.waktu}")
             
-        print(f"{Color.CYAN}=" * 65 + f"{Color.RESET}")
+        print(f"{Color.CYAN}=" * 73 + f"{Color.RESET}")
         print(f"  Total: {Color.BOLD}{len(nodes)}{Color.RESET} pasien\n")
 
     def display_all(self):
