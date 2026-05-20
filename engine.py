@@ -1,7 +1,10 @@
 # engine.py
 # Modul Logika Struktur Data - Kelompok 1
 
+from interface import Color # Import Color untuk estetika
 from datetime import datetime, timedelta, timezone
+from interface import Color
+from storage import save_data
 
 class Node:
     def __init__(self, id_pasien, nama, kategori, waktu):
@@ -81,6 +84,8 @@ class PriorityQueue:
             self.tail.next = new_node
             self.tail = new_node
 
+
+        save_data(self)
         return new_id
 
     def dequeue(self):
@@ -99,6 +104,7 @@ class PriorityQueue:
 
         # Masukkan ke Log (Gunakan append agar O(1))
         self.logs.append(temp)
+        save_data(self)
         return temp
 
     # ─────────────────────────────────────────────
@@ -117,101 +123,124 @@ class PriorityQueue:
     # DISPLAY (tampilan asli / urutan antrian)
     # ─────────────────────────────────────────────
     def _print_table(self, nodes, judul="ANTRIAN AKTIF"):
-        """Mencetak tabel dari list node."""
-        print("\n" + "=" * 60)
-        print(f"  {judul}".center(60))
-        print("=" * 60)
-        print(f"  {'No':<4} {'ID':<7} {'NAMA PASIEN':<18} {'STATUS':<10} {'WAKTU DAFTAR'}")
-        print("-" * 60)
+        """Mencetak tabel dari list node dengan pewarnaan terstandardisasi."""
+        print("\n" + f"{Color.CYAN}=" * 73)
+        print(f"{Color.RESET}{Color.BOLD}{judul}{Color.RESET}".center(65))
+        print(f"{Color.CYAN}=" * 73)
+        print(f"| {'No':<4} | {'ID':<6} | {'NAMA PASIEN':<20} | {'STATUS':<10} | {'WAKTU DAFTAR'}")
+        print(f"-" * 73 + f"{Color.RESET}")
+        
         for i, node in enumerate(nodes, start=1):
-            status_mark = "🔴" if node.kategori == "Darurat" else "🟢"
-            print(f"  {i:<4} {node.id_pasien:<7} {node.nama:<18} {status_mark} {node.kategori:<8} {node.waktu}")
-        print("=" * 60)
-        print(f"  Total: {len(nodes)} pasien\n")
+            if node.kategori == "Darurat":
+                kat_warna = f"{Color.RED}{node.kategori:<10}{Color.RESET}"
+            else:
+                kat_warna = f"{Color.GREEN}{node.kategori:<10}{Color.RESET}"
+                
+            print(f"| {i:<4} | {node.id_pasien:<6} | {node.nama:<20} | {kat_warna} | {node.waktu}")
+            
+        print(f"{Color.CYAN}=" * 73 + f"{Color.RESET}")
+        print(f"  Total: {Color.BOLD}{len(nodes)}{Color.RESET} pasien\n")
 
     def display_all(self):
-        """Tampilkan antrian sesuai urutan asli (prioritas aktif)."""
         if self.is_empty():
-            print("\n--- Antrian Kosong ---")
+            print(f"\n{Color.RED}--- Antrian Kosong ---{Color.RESET}")
             return
-        nodes = self._to_list()
-        self._print_table(nodes, judul="ANTRIAN AKTIF (Urutan Pelayanan)")
 
-    # ─────────────────────────────────────────────
-    # SORT — hanya untuk tampilan, tidak ubah antrian
-    # ─────────────────────────────────────────────
+        # Header Tabel menggunakan warna Cyan agar konsisten dengan menu utama
+        print("\n" + f"{Color.CYAN}="*52 + f"{Color.RESET}")
+        print(f"| {'ID':<6} | {'NAMA PASIEN':<20} | {'KATEGORI':<12} |")
+        print(f"{Color.CYAN}-"*52 + f"{Color.RESET}")
+        
+        curr = self.head
+        while curr:
+            # Berikan warna pembeda pada kolom kategori secara dinamis
+            if curr.kategori == "Darurat":
+                kat_warna = f"{Color.RED}{curr.kategori:<12}{Color.RESET}"
+            else:
+                kat_warna = f"{Color.GREEN}{curr.kategori:<12}{Color.RESET}"
+                
+            # Cetak baris data pasien
+            print(f"{Color.CYAN}|{Color.RESET} {curr.id_pasien:<6} {Color.CYAN}|{Color.RESET} {curr.nama:<20} {Color.CYAN}|{Color.RESET} {kat_warna} {Color.CYAN}|{Color.RESET}")
+            curr = curr.next
+            
+        print(f"{Color.CYAN}="*52 + f"{Color.RESET}")
+
+    # ─────────────────────────────────────────────────────────
+    # SORT — Hanya untuk tampilan, TIDAK mengubah antrian asli
+    # ─────────────────────────────────────────────────────────
     def display_sorted(self, mode):
         """
         Menampilkan antrian dalam urutan tertentu (TIDAK mengubah antrian asli).
-
         mode:
-          'alpha'    → Urut A-Z berdasarkan nama pasien
-          'urgency'  → Darurat semua dulu, lalu Normal (urutan kedatangan dipertahankan)
-          'combined' → Darurat dulu (A-Z), lalu Normal (A-Z)
+          'nama' / 'alpha'       → Urut A-Z berdasarkan nama pasien
+          'kategori' / 'urgency' → Darurat semua dulu, lalu Normal (urutan kedatangan dipertahankan)
+          'gabungan' / 'combined'→ Darurat dulu (A-Z), lalu Normal (A-Z)
         """
         if self.is_empty():
-            print("\n--- Antrian Kosong ---")
+            print(f"\n{Color.YELLOW}┌───────────────────────────┐")
+            print(f"│ {Color.BOLD}ANTRIAN KOSONG SAAT INI{Color.RESET}{Color.YELLOW} │")
+            print(f"└───────────────────────────┘{Color.RESET}")
             return
 
+        # Ambil semua node dari linked list ke dalam list penolong (Array lokal)
         nodes = self._to_list()
 
-        if mode == 'waktu':
-            # Urut waktu daftar: terlama di atas (pertama daftar = paling atas)
-            # Pasien dengan waktu '-' dianggap paling awal (data lama tanpa timestamp)
-            def waktu_key(n):
-                return n.waktu if n.waktu != '-' else '0000-00-00 00:00:00'
-            sorted_nodes = sorted(nodes, key=waktu_key)
-            judul = 'ANTRIAN - URUT WAKTU DAFTAR (Pertama -> Terbaru)'
+        if mode in ['nama', 'alpha']:
+            # Merge Sort berdasarkan nama (A-Z)
+            sorted_nodes = self._merge_sort_alpha(nodes)
+            judul = "ANTRIAN — URUT ALFABETIS (A-Z)"
 
-        elif mode == 'alpha':
-            sorted_nodes = self._insertion_sort_alpha(nodes)
-            judul = 'ANTRIAN - URUT ALFABETIS (A-Z)'
-
-        elif mode == 'urgency':
-            darurat = [n for n in nodes if n.kategori == 'Darurat']
-            normal  = [n for n in nodes if n.kategori == 'Normal']
+        elif mode in ['kategori', 'urgency']:
+            # Pisahkan Darurat & Normal, pertahankan urutan kedatangan masing-masing (FIFO Priority)
+            darurat = [n for n in nodes if n.kategori == "Darurat"]
+            normal  = [n for n in nodes if n.kategori == "Normal"]
             sorted_nodes = darurat + normal
-            judul = 'ANTRIAN - URUT URGENSI (Darurat -> Normal)'
+            judul = "ANTRIAN — URUT URGENSI (Darurat → Normal)"
 
-        elif mode == 'combined':
-            darurat = self._insertion_sort_alpha([n for n in nodes if n.kategori == 'Darurat'])
-            normal  = self._insertion_sort_alpha([n for n in nodes if n.kategori == 'Normal'])
+        elif mode in ['gabungan', 'combined']:
+            # Merge Sort - Darurat A-Z dulu, lalu Normal A-Z
+            darurat = self._merge_sort_alpha([n for n in nodes if n.kategori == "Darurat"])
+            normal  = self._merge_sort_alpha([n for n in nodes if n.kategori == "Normal"])
             sorted_nodes = darurat + normal
-            judul = 'ANTRIAN - URGENSI + ALFABETIS (Darurat A-Z -> Normal A-Z)'
+            judul = "ANTRIAN — URGENSI + ALFABETIS (Darurat A-Z → Normal A-Z)"
 
         else:
-            print('[ERROR] Mode sort tidak dikenali.')
+            print(f"{Color.RED}[ERROR] Mode sort tidak dikenali.{Color.RESET}")
             return
 
+        # Panggil fungsi pembantu untuk menampilkan array yang sudah terurut
         self._print_table(sorted_nodes, judul=judul)
 
-    def _insertion_sort_alpha(self, nodes):
-        """Merge Sort A-Z berdasarkan nama (case-insensitive). O(n log n)."""
-        return self._merge_sort(nodes[:])
-
-    def _merge_sort(self, arr):
-        """Rekursif Merge Sort. Membagi array sampai 1 elemen, lalu merge."""
-        if len(arr) <= 1:
-            return arr
-        mid = len(arr) // 2
-        left  = self._merge_sort(arr[:mid])
-        right = self._merge_sort(arr[mid:])
-        return self._merge(left, right)
-
-    def _merge(self, left, right):
-        """Gabungkan dua list terurut menjadi satu list terurut (A-Z nama)."""
-        result = []
-        i = j = 0
-        while i < len(left) and j < len(right):
-            if left[i].nama.lower() <= right[j].nama.lower():
-                result.append(left[i])
-                i += 1
-            else:
-                result.append(right[j])
-                j += 1
-        result.extend(left[i:])
-        result.extend(right[j:])
-        return result
+    def _merge_sort_alpha(self, nodes):
+        """Merge Sort A-Z berdasarkan nama (case-insensitive). O(n log n)"""
+        if len(nodes) <= 1:
+            return nodes[:]
+        
+        def merge(left, right):
+            """Menggabungkan dua array yang sudah terurut."""
+            result = []
+            i = j = 0
+            while i < len(left) and j < len(right):
+                if left[i].nama.lower() <= right[j].nama.lower():
+                    result.append(left[i])
+                    i += 1
+                else:
+                    result.append(right[j])
+                    j += 1
+            result.extend(left[i:])
+            result.extend(right[j:])
+            return result
+        
+        def merge_sort(arr):
+            """Divide and conquer - membagi array hingga ukuran 1, lalu menggabungkannya."""
+            if len(arr) <= 1:
+                return arr
+            mid = len(arr) // 2
+            left = merge_sort(arr[:mid])
+            right = merge_sort(arr[mid:])
+            return merge(left, right)
+        
+        return merge_sort(nodes[:])
 
     # ─────────────────────────────────────────────
     # SEARCH — partial match, semua hasil ditampilkan
@@ -252,20 +281,58 @@ class PriorityQueue:
     # ─────────────────────────────────────────────
     def show_logs(self):
         if not self.logs:
-            print("\nBelum ada pasien yang dilayani.")
+            print(f"\n{Color.YELLOW}┌───────────────────────────┐")
+            print(f"│ {Color.BOLD}BELUM ADA PASIEN DILAYANI{Color.RESET}{Color.YELLOW} │")
+            print(f"└───────────────────────────┘{Color.RESET}")
             return
 
-        print("\n" + "=" * 55)
-        print("      RIWAYAT PELAYANAN (LOG STACK)      ".center(55))
-        print("=" * 55)
-        print(f"  {'No':<4} {'ID':<7} {'NAMA':<18} {'STATUS':<10} {'WAKTU'}")
-        print("-" * 55)
-        for i, p in enumerate(reversed(self.logs), start=1):
-            status_mark = "🔴" if p.kategori == "Darurat" else "🟢"
-            print(f"  {i:<4} {p.id_pasien:<7} {p.nama:<18} {status_mark} {p.kategori:<8} {p.waktu}")
-        print("-" * 55)
-        print(f"  Total pasien dilayani: {len(self.logs)}\n")
+        print(f"\n{Color.BLUE}╔═══════════════════════════════════════════════════════╗")
+        print(f"║ {Color.BOLD}RIWAYAT PELAYANAN (LOG STACK){Color.RESET}{Color.BLUE}".ljust(69) + "║")
+        print(f"╠═══════════════════════════════════════════════════════╣{Color.RESET}")
+        for p in reversed(self.logs):  # Tampilkan dari yang terbaru
+            print(f"{Color.BLUE}║ [{p.waktu}] {p.id_pasien} - {p.nama} {Color.GREEN}(SELESAI){Color.RESET}{Color.BLUE}".ljust(75) + f"║{Color.RESET}")
+        print(f"{Color.BLUE}╚═══════════════════════════════════════════════════════╝{Color.RESET}")
 
+    def search_pasien(self, keyword):
+        curr = self.head
+        found = False
+        print(f"\n{Color.YELLOW}Mencari pasien dengan keyword '{keyword}'...{Color.RESET}")
+        while curr:
+            # Sekarang bisa mencari berdasarkan Nama, ID, atau bagian dari Waktu (misal: "2023-10")
+            if (keyword.lower() in curr.nama.lower() or 
+                keyword.upper() == curr.id_pasien or 
+                keyword in curr.waktu):
+                print(f"{Color.GREEN}✅ DITEMUKAN: {Color.BOLD}{curr.id_pasien}{Color.RESET} - {curr.nama} [{curr.kategori}] (Daftar: {curr.waktu}){Color.RESET}")
+                found = True
+            curr = curr.next
+        if not found:
+            print(f"{Color.RED}❌ Pasien '{keyword}' tidak ditemukan.{Color.RESET}")
+            
     def get_log_count(self):
         """Mengembalikan jumlah pasien yang sudah dilayani."""
         return len(self.logs)
+    
+    def display_by_kategori(self, target_kategori):
+        """
+        Menampilkan daftar antrian yang difilter berdasarkan kategori tertentu.
+        target_kategori: "Darurat" atau "Normal"
+        """
+        if self.is_empty():
+            print(f"\n{Color.YELLOW}┌───────────────────────────┐")
+            print(f"│ {Color.BOLD}ANTRIAN KOSONG SAAT INI{Color.RESET}{Color.YELLOW} │")
+            print(f"└───────────────────────────┘{Color.RESET}")
+            return
+
+        # Ambil semua node linked list ke dalam list penolong
+        nodes = self._to_list()
+        # Filter hanya yang kategorinya cocok
+        filtered_nodes = [n for n in nodes if n.kategori == target_kategori]
+
+        if not filtered_nodes:
+            print(f"\n{Color.RED}❌ Tidak ada pasien dengan kategori '{target_kategori}' di dalam antrian.{Color.RESET}")
+            return
+
+        judul = f"ANTRIAN AKTIF — KHUSUS KATEGORI {target_kategori.upper()}"
+        
+        # Manfaatkan fungsi cetak tabel yang sudah kita perbaiki sebelumnya
+        self._print_table(filtered_nodes, judul=judul)

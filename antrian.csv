@@ -1,8 +1,7 @@
 id,nama,kategori,waktu
-P007,Prabowo,Darurat,2026-05-20 05:50:06
-P010,Gibrun,Darurat,2026-05-20 05:50:32
 P011,Pitching,Darurat,2026-05-20 05:50:57
 P017,Hiba,Darurat,2026-05-20 10:37:43
+P019,mbut,Darurat,2026-05-20 14:20:33
 P001,Ramd,Normal,2026-05-19 21:48:58
 P002,Ram,Normal,2026-05-20 05:23:01
 P003,Ramdhan,Normal,2026-05-20 05:47:16
@@ -15,3 +14,4 @@ P013,Ibradih,Normal,2026-05-20 05:51:12
 P014,ibra,Normal,2026-05-20 05:51:23
 P015,Ibramul,Normal,2026-05-20 05:51:37
 P016,Ghidorah,Normal,2026-05-20 10:37:16
+P018,ger,Normal,2026-05-20 14:09:05
