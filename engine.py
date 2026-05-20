@@ -15,6 +15,21 @@ class Node:
         self.next = None
 
 class PriorityQueue:
+    """
+    Priority Queue untuk sistem antrian pelayanan pasien dengan sorting berbasis Merge Sort.
+    
+    Fitur:
+    - Enqueue/Dequeue dengan prioritas (Darurat > Normal)
+    - Logging riwayat pelayanan (Stack)
+    - Display dengan sorting berdasarkan nama (Merge Sort O(n log n))
+    - Filter dan search pasien
+    
+    Sorting Algorithm: MERGE SORT
+    - Metode: Divide and Conquer
+    - Kompleksitas Waktu: O(n log n)
+    - Kompleksitas Ruang: O(n)
+    - Stabil: Ya (mempertahankan urutan relative elemen yang sama)
+    """
     def __init__(self):
         self.head = None
         self.tail = None
@@ -186,8 +201,8 @@ class PriorityQueue:
         nodes = self._to_list()
 
         if mode in ['nama', 'alpha']:
-            # Insertion Sort berdasarkan nama (A-Z)
-            sorted_nodes = self._insertion_sort_alpha(nodes)
+            # Merge Sort berdasarkan nama (A-Z)
+            sorted_nodes = self._merge_sort_alpha(nodes)
             judul = "ANTRIAN — URUT ALFABETIS (A-Z)"
 
         elif mode in ['kategori', 'urgency']:
@@ -198,9 +213,9 @@ class PriorityQueue:
             judul = "ANTRIAN — URUT URGENSI (Darurat → Normal)"
 
         elif mode in ['gabungan', 'combined']:
-            # Darurat A-Z dulu, lalu Normal A-Z
-            darurat = self._insertion_sort_alpha([n for n in nodes if n.kategori == "Darurat"])
-            normal  = self._insertion_sort_alpha([n for n in nodes if n.kategori == "Normal"])
+            # Darurat A-Z dulu, lalu Normal A-Z (menggunakan Merge Sort)
+            darurat = self._merge_sort_alpha([n for n in nodes if n.kategori == "Darurat"])
+            normal  = self._merge_sort_alpha([n for n in nodes if n.kategori == "Normal"])
             sorted_nodes = darurat + normal
             judul = "ANTRIAN — URGENSI + ALFABETIS (Darurat A-Z → Normal A-Z)"
 
@@ -211,17 +226,44 @@ class PriorityQueue:
         # Panggil fungsi pembantu untuk menampilkan array yang sudah terurut
         self._print_table(sorted_nodes, judul=judul)
 
-    def _insertion_sort_alpha(self, nodes):
-        """Insertion Sort A-Z berdasarkan nama (case-insensitive)."""
-        arr = nodes[:]  # Salin alamat objek agar tidak merusak urutan asli
-        for i in range(1, len(arr)):
-            key = arr[i]
-            j = i - 1
-            while j >= 0 and arr[j].nama.lower() > key.nama.lower():
-                arr[j + 1] = arr[j]
-                j -= 1
-            arr[j + 1] = key
-        return arr
+    def _merge_sort_alpha(self, nodes):
+        """
+        Merge Sort A-Z berdasarkan nama pasien (case-insensitive).
+        
+        Algoritma Divide and Conquer:
+        - Kompleksitas waktu: O(n log n) — optimal untuk sorting
+        - Kompleksitas ruang: O(n) — membutuhkan array tambahan
+        - Stabil: Mempertahankan urutan relative elemen yang sama
+        - Cocok untuk dataset besar dengan performa konsisten
+        """
+        if len(nodes) <= 1:
+            return nodes[:]
+        
+        def merge(left, right):
+            """Menggabungkan dua array yang sudah terurut."""
+            result = []
+            i = j = 0
+            while i < len(left) and j < len(right):
+                if left[i].nama.lower() <= right[j].nama.lower():
+                    result.append(left[i])
+                    i += 1
+                else:
+                    result.append(right[j])
+                    j += 1
+            result.extend(left[i:])
+            result.extend(right[j:])
+            return result
+        
+        def merge_sort(arr):
+            """Divide and conquer - membagi array hingga ukuran 1, lalu menggabungkannya."""
+            if len(arr) <= 1:
+                return arr
+            mid = len(arr) // 2
+            left = merge_sort(arr[:mid])
+            right = merge_sort(arr[mid:])
+            return merge(left, right)
+        
+        return merge_sort(nodes[:])
 
     # ─────────────────────────────────────────────
     # SEARCH — partial match, semua hasil ditampilkan
@@ -274,21 +316,7 @@ class PriorityQueue:
             print(f"{Color.BLUE}║ [{p.waktu}] {p.id_pasien} - {p.nama} {Color.GREEN}(SELESAI){Color.RESET}{Color.BLUE}".ljust(75) + f"║{Color.RESET}")
         print(f"{Color.BLUE}╚═══════════════════════════════════════════════════════╝{Color.RESET}")
 
-    def search_pasien(self, keyword):
-        curr = self.head
-        found = False
-        print(f"\n{Color.YELLOW}Mencari pasien dengan keyword '{keyword}'...{Color.RESET}")
-        while curr:
-            # Sekarang bisa mencari berdasarkan Nama, ID, atau bagian dari Waktu (misal: "2023-10")
-            if (keyword.lower() in curr.nama.lower() or 
-                keyword.upper() == curr.id_pasien or 
-                keyword in curr.waktu):
-                print(f"{Color.GREEN}✅ DITEMUKAN: {Color.BOLD}{curr.id_pasien}{Color.RESET} - {curr.nama} [{curr.kategori}] (Daftar: {curr.waktu}){Color.RESET}")
-                found = True
-            curr = curr.next
-        if not found:
-            print(f"{Color.RED}❌ Pasien '{keyword}' tidak ditemukan.{Color.RESET}")
-            
+
     def get_log_count(self):
         """Mengembalikan jumlah pasien yang sudah dilayani."""
         return len(self.logs)
