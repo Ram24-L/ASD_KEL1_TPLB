@@ -186,9 +186,9 @@ class PriorityQueue:
         nodes = self._to_list()
 
         if mode in ['nama', 'alpha']:
-            # Insertion Sort berdasarkan nama (A-Z)
-            sorted_nodes = self._insertion_sort_alpha(nodes)
-            judul = "ANTRIAN — URUT ALFABETIS (A-Z)"
+            # MENGGUNAKAN: Merge Sort berdasarkan nama (A-Z)
+            sorted_nodes = self._merge_sort_alpha(nodes)
+            judul = "ANTRIAN — URUT ALFABETIS (MERGE SORT A-Z)"
 
         elif mode in ['kategori', 'urgency']:
             # Pisahkan Darurat & Normal, pertahankan urutan kedatangan masing-masing (FIFO Priority)
@@ -198,11 +198,11 @@ class PriorityQueue:
             judul = "ANTRIAN — URUT URGENSI (Darurat → Normal)"
 
         elif mode in ['gabungan', 'combined']:
-            # Darurat A-Z dulu, lalu Normal A-Z
-            darurat = self._insertion_sort_alpha([n for n in nodes if n.kategori == "Darurat"])
-            normal  = self._insertion_sort_alpha([n for n in nodes if n.kategori == "Normal"])
+            # MENGGUNAKAN: Merge Sort untuk gabungan (Darurat A-Z dulu, lalu Normal A-Z)
+            darurat = self._merge_sort_alpha([n for n in nodes if n.kategori == "Darurat"])
+            normal  = self._merge_sort_alpha([n for n in nodes if n.kategori == "Normal"])
             sorted_nodes = darurat + normal
-            judul = "ANTRIAN — URGENSI + ALFABETIS (Darurat A-Z → Normal A-Z)"
+            judul = "ANTRIAN — URGENSI + ALFABETIS (MERGE SORT)"
 
         else:
             print(f"{Color.RED}[ERROR] Mode sort tidak dikenali.{Color.RESET}")
@@ -211,17 +211,45 @@ class PriorityQueue:
         # Panggil fungsi pembantu untuk menampilkan array yang sudah terurut
         self._print_table(sorted_nodes, judul=judul)
 
-    def _insertion_sort_alpha(self, nodes):
-        """Insertion Sort A-Z berdasarkan nama (case-insensitive)."""
+    def _merge_sort_alpha(self, nodes):
+        """
+        Fungsi utama Merge Sort A-Z berdasarkan nama pasien.
+        Garansi Kompleksitas Waktu: O(n log n) di semua kondisi.
+        """
         arr = nodes[:]  # Salin alamat objek agar tidak merusak urutan asli
-        for i in range(1, len(arr)):
-            key = arr[i]
-            j = i - 1
-            while j >= 0 and arr[j].nama.lower() > key.nama.lower():
-                arr[j + 1] = arr[j]
-                j -= 1
-            arr[j + 1] = key
-        return arr
+        return self._merge_sort_helper(arr)
+
+    def _merge_sort_helper(self, arr):
+        """Fungsi rekursif untuk membelah array menjadi dua bagian."""
+        if len(arr) <= 1:
+            return arr
+
+        # Pembelahan secara Logaritma (Divide)
+        mid = len(arr) // 2
+        left_half = self._merge_sort_helper(arr[:mid])
+        right_half = self._merge_sort_helper(arr[mid:])
+
+        # Penggabungan kembali secara terurut (Conquer & Merge)
+        return self._merge(left_half, right_half)
+
+    def _merge(self, left, right):
+        """Logika penggabungan dua array yang sudah terurut secara alfabetis."""
+        result = []
+        i = j = 0
+
+        # Bandingkan elemen dari kedua sub-array
+        while i < len(left) and j < len(right):
+            if left[i].nama.lower() <= right[j].nama.lower():
+                result.append(left[i])
+                i += 1
+            else:
+                result.append(right[j])
+                j += 1
+
+        # Ambil sisa elemen yang belum dimasukkan
+        result.extend(left[i:])
+        result.extend(right[j:])
+        return result
 
     # ─────────────────────────────────────────────
     # SEARCH — partial match, semua hasil ditampilkan
