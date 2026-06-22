@@ -186,9 +186,9 @@ class PriorityQueue:
         nodes = self._to_list()
 
         if mode in ['nama', 'alpha']:
-            # MENGGUNAKAN: Merge Sort berdasarkan nama (A-Z)
+            # Merge Sort berdasarkan nama (A-Z)
             sorted_nodes = self._merge_sort_alpha(nodes)
-            judul = "ANTRIAN — URUT ALFABETIS (MERGE SORT A-Z)"
+            judul = "ANTRIAN — URUT ALFABETIS (A-Z)"
 
         elif mode in ['kategori', 'urgency']:
             # Pisahkan Darurat & Normal, pertahankan urutan kedatangan masing-masing (FIFO Priority)
@@ -198,7 +198,7 @@ class PriorityQueue:
             judul = "ANTRIAN — URUT URGENSI (Darurat → Normal)"
 
         elif mode in ['gabungan', 'combined']:
-            # MENGGUNAKAN: Merge Sort untuk gabungan (Darurat A-Z dulu, lalu Normal A-Z)
+            # Merge Sort - Darurat A-Z dulu, lalu Normal A-Z
             darurat = self._merge_sort_alpha([n for n in nodes if n.kategori == "Darurat"])
             normal  = self._merge_sort_alpha([n for n in nodes if n.kategori == "Normal"])
             sorted_nodes = darurat + normal
@@ -212,17 +212,35 @@ class PriorityQueue:
         self._print_table(sorted_nodes, judul=judul)
 
     def _merge_sort_alpha(self, nodes):
-        """
-        Fungsi utama Merge Sort A-Z berdasarkan nama pasien.
-        Garansi Kompleksitas Waktu: O(n log n) di semua kondisi.
-        """
-        arr = nodes[:]  # Salin alamat objek agar tidak merusak urutan asli
-        return self._merge_sort_helper(arr)
-
-    def _merge_sort_helper(self, arr):
-        """Fungsi rekursif untuk membelah array menjadi dua bagian."""
-        if len(arr) <= 1:
-            return arr
+        """Merge Sort A-Z berdasarkan nama (case-insensitive). O(n log n)"""
+        if len(nodes) <= 1:
+            return nodes[:]
+        
+        def merge(left, right):
+            """Menggabungkan dua array yang sudah terurut."""
+            result = []
+            i = j = 0
+            while i < len(left) and j < len(right):
+                if left[i].nama.lower() <= right[j].nama.lower():
+                    result.append(left[i])
+                    i += 1
+                else:
+                    result.append(right[j])
+                    j += 1
+            result.extend(left[i:])
+            result.extend(right[j:])
+            return result
+        
+        def merge_sort(arr):
+            """Divide and conquer - membagi array hingga ukuran 1, lalu menggabungkannya."""
+            if len(arr) <= 1:
+                return arr
+            mid = len(arr) // 2
+            left = merge_sort(arr[:mid])
+            right = merge_sort(arr[mid:])
+            return merge(left, right)
+        
+        return merge_sort(nodes[:])
 
         # Pembelahan secara Logaritma (Divide)
         mid = len(arr) // 2

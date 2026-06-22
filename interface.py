@@ -155,4 +155,3 @@ def login_admin():
         print(f"\n{Color.RED}❌ Username atau Password salah! Akses ditolak.{Color.RESET}")
         input(f"{Color.YELLOW}  Tekan Enter untuk mencoba lagi...{Color.RESET}")
         return False
-    
