@@ -6,7 +6,7 @@ import os
 import time
 from engine import PriorityQueue
 from storage import load_data, save_data 
-from interface import header_klinik, display_menu, animasi_panggil, Color
+from interface import header_klinik, display_menu, animasi_panggil, login_admin, Color
 
 
 def clear_screen():
@@ -98,8 +98,6 @@ def main():
     # Load data lama dari CSV jika ada
     load_data(antrian)
 
-    #Load fungsi login
-    from interface import login_admin
     while True:
         clear_screen()
         # Jika fungsi login mengembalikan True, keluar dari loop login dan masuk ke aplikasi
