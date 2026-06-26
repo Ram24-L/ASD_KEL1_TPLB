@@ -242,13 +242,6 @@ class PriorityQueue:
         
         return merge_sort(nodes[:])
 
-        # Pembelahan secara Logaritma (Divide)
-        mid = len(arr) // 2
-        left_half = self._merge_sort_helper(arr[:mid])
-        right_half = self._merge_sort_helper(arr[mid:])
-
-        # Penggabungan kembali secara terurut (Conquer & Merge)
-        return self._merge(left_half, right_half)
 
     def _merge(self, left, right):
         """Logika penggabungan dua array yang sudah terurut secara alfabetis."""
